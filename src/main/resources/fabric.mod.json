@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "gamblingaddict",
+  "version": "${version}",
+  "name": "Gambling Addict",
+  "description": "Client-side Hypixel SkyBlock companion. Intercepts rare Slayer drop messages and plays a custom GUI reveal animation (anvil durability test / 3-reel slot machine) before the drop is shown in chat.",
+  "authors": [
+    "eldrit"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.eldrit.gamblingaddict.GamblingAddictClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.0",
+    "minecraft": ">=26.1",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}

@@ -1,0 +1,95 @@
+plugins {
+    // Must be new enough to understand the 26.x version manifest.
+    id 'fabric-loom' version '1.18.0-alpha.21'
+    id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+// This project lives inside OneDrive, which keeps handles open on files under
+// build/ while it syncs them. Gradle's clean step then fails intermittently with
+// "Unable to delete directory". Keeping build output outside the synced folder
+// avoids the race entirely. Override with -Pga.buildDir=... if you move the project.
+layout.buildDirectory = file(
+        providers.gradleProperty("ga.buildDir")
+                .getOrElse("${System.getProperty('java.io.tmpdir')}/gamblingaddict-build"))
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    mavenCentral()
+}
+
+loom {
+    // Minecraft 26.x ships unobfuscated: Mojang publishes no client_mappings for
+    // 26.1 (only client/server jars), fabric-meta reports intermediary "0.0.0",
+    // and the jar contains real names like net.minecraft.client.Minecraft. There
+    // is therefore nothing to deobfuscate and no intermediary layer to apply, so
+    // the whole mappings pipeline is switched off.
+    noIntermediateMappings()
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+
+    // Mojang official mappings, NOT Yarn.
+    //
+    // Yarn does not exist for Minecraft 26.x — the newest Yarn build is for
+    // 1.21.11, and fabric-meta reports intermediary "0.0.0" for 26.1 (the
+    // sentinel for "no intermediary needed"). The 26.1 client jar ships with
+    // real class names rather than obfuscated ones, so Mojang's own names are
+    // the mapping set. Every net.minecraft.* reference in this project is
+    // written against them.
+    // Identity mappings. Loom insists on a `mappings` dependency even with
+    // noIntermediateMappings(), and net.fabricmc:intermediary:0.0.0 is the 578-byte
+    // no-op stub that fabric-meta points at for 26.x — official names in, the same
+    // names out. This is the entry that replaces the usual `yarn` line.
+    mappings "net.fabricmc:intermediary:0.0.0:v2"
+
+    // Plain `implementation`, not `modImplementation`.
+    //
+    // modImplementation exists to run a dependency through Loom's intermediary ->
+    // named remapper. With identity mappings that is a no-op, and Loom's pipeline
+    // actively fails on it here (it chokes remapping fabric-api's -sources.jar).
+    // Both artifacts are already published in official names for 26.1, so putting
+    // them straight on the compile classpath is both simpler and correct.
+    //
+    // Neither is bundled into the output jar; the loader provides them at runtime.
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": inputs.properties.version
+    }
+}
+
+def javaRelease = Integer.parseInt(project.java_version)
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = javaRelease
+    it.options.encoding = "UTF-8"
+}
+
+java {
+    // No withSourcesJar(). Loom's remapSourcesJar needs a "named" namespace to
+    // remap into, and the identity mappings stub used for 26.x has only one
+    // namespace, so the task fails. Nothing is lost: with official names there is
+    // no deobfuscated variant for a sources jar to provide.
+
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(javaRelease)
+    }
+}
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${project.base.archivesName.get()}" }
+    }
+}

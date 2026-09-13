@@ -1,0 +1,12 @@
+{
+  "slotmachine": {
+    "category": "master",
+    "subtitle": "gamblingaddict.subtitle.slotmachine",
+    "sounds": [
+      {
+        "name": "gamblingaddict:slotmachine",
+        "stream": false
+      }
+    ]
+  }
+}

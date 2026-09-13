@@ -1,0 +1,20 @@
+slotmachine.ogg goes in this directory.
+
+Minecraft's sound engine only decodes OGG Vorbis. MP3 will not load — it is not a
+matter of configuration, there is no codec plugin point.
+
+The source MP3 is in the repo at  sounds-src/slotmachine.mp3
+(64 kbps stereo, 44.1 kHz, ~6.1 seconds)
+
+Convert it with ffmpeg:
+
+    ffmpeg -i sounds-src/slotmachine.mp3 -c:a libvorbis -q:a 5 -ar 44100 \
+           src/main/resources/assets/gamblingaddict/sounds/slotmachine.ogg
+
+No ffmpeg? Either:
+    winget install Gyan.FFmpeg
+or use Audacity: File > Open the MP3, then File > Export > Export as OGG.
+
+Until this file exists, SoundUtil detects the missing sound at play time and falls
+back to the vanilla ENTITY_PLAYER_LEVELUP sting. Nothing breaks; you just don't
+get the custom clip.

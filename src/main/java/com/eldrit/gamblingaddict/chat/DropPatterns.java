@@ -13,8 +13,11 @@ public final class DropPatterns {
             Pattern.CASE_INSENSITIVE);
 
     public static final Pattern LOOT_SHARE_NOTICE = Pattern.compile(
-            "^LOOT SHARE\\s+You received loot for assisting\\s+(?<player>[A-Za-z0-9_]{2,16})!?",
+            "^LOOT SHARE\\s+You received (?:loot|(?:an?|\\d+x?)\\s+(?<item>.+?)) for assisting\\s+(?<player>[A-Za-z0-9_]{2,16})!?",
             Pattern.CASE_INSENSITIVE);
+
+    public record LootShare(String player, @Nullable String item) {
+    }
 
     private static final Pattern PLAYER_CHAT = Pattern.compile(
             "^(\\[\\d+\\]\\s*)?[^:]{0,48}?[A-Za-z0-9_]{2,16}:\\s");
@@ -41,9 +44,13 @@ public final class DropPatterns {
         return new Banner(m.group("banner").toUpperCase(Locale.ROOT), m.group("share") != null);
     }
 
-    public static @Nullable String lootShareFrom(String plain) {
+    public static @Nullable LootShare lootShare(String plain) {
         Matcher m = LOOT_SHARE_NOTICE.matcher(plain);
-        return m.find() ? m.group("player") : null;
+        if (!m.find()) {
+            return null;
+        }
+        String item = m.group("item");
+        return new LootShare(m.group("player"), item == null ? null : item.trim());
     }
 
     public static boolean isRareDropOf(String plain, String... itemNames) {

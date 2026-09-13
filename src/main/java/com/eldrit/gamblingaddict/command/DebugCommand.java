@@ -80,6 +80,13 @@ public final class DebugCommand {
                                         "chat regex logger " + (ModConfig.get().debugLogging ? "ON" : "OFF")
                                                 + " (written to latest.log)");
                                 dumpSidebar(ctx.getSource());
+                                dumpTags(ctx.getSource());
+                                return 1;
+                            }))
+
+                    .then(ClientCommands.literal("tags")
+                            .executes(ctx -> {
+                                dumpTags(ctx.getSource());
                                 return 1;
                             }))
 
@@ -226,6 +233,7 @@ public final class DebugCommand {
         feedback(source, ChatFormatting.GRAY, "/gambling test loss <boss>   - force a losing gamble");
         feedback(source, ChatFormatting.GRAY, "/gamblingaddict status       - what the trackers currently see");
         feedback(source, ChatFormatting.GRAY, "/gamblingaddict debug        - toggle the chat regex logger");
+        feedback(source, ChatFormatting.GRAY, "/gamblingaddict tags         - list nearby boss nametags the tracker can see");
         feedback(source, ChatFormatting.GRAY, "/gamblingaddict testkill [boss] - simulate a boss kill");
         feedback(source, ChatFormatting.GRAY, "/gamblingaddict match <text> - test a drop line");
         feedback(source, ChatFormatting.GRAY, "/gamblingaddict reload       - re-read the config file");
@@ -246,6 +254,19 @@ public final class DebugCommand {
         for (String line : lines) {
             feedback(source, ChatFormatting.WHITE, "  \"" + line + "\"");
         }
+    }
+
+    private static void dumpTags(FabricClientCommandSource source) {
+        List<String> tags = SeaCreatureTracker.nearbyTags(Minecraft.getInstance());
+        if (tags.isEmpty()) {
+            feedback(source, ChatFormatting.RED, "no mob nametags with a health readout nearby");
+            return;
+        }
+        feedback(source, ChatFormatting.YELLOW, "── nametags (" + tags.size() + ") ──");
+        for (String tag : tags) {
+            feedback(source, ChatFormatting.WHITE, "  \"" + tag + "\"");
+        }
+        feedback(source, ChatFormatting.GRAY, "tracker: " + SeaCreatureTracker.describe());
     }
 
     private static void feedback(FabricClientCommandSource source, ChatFormatting colour, String msg) {

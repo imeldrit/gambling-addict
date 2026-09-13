@@ -46,12 +46,13 @@ public final class ChatInterceptor {
             return true;
         }
 
-        if (DropPatterns.lootShareFrom(plain) != null) {
+        DropPatterns.LootShare share = DropPatterns.lootShare(plain);
+        if (share != null) {
             lootShareNoticeTick = SlayerTracker.ticks();
-            if (cfg.debugLogging) {
-                GamblingAddictClient.LOGGER.info("[GamblingAddict] loot share notice - next drop counts as shared");
+            if (!cfg.lootShareDetection) {
+                return true;
             }
-            return true;
+            return !SeaCreatureTracker.onLootShare(message, share, context());
         }
 
         DropPatterns.Banner banner = DropPatterns.banner(plain);
@@ -112,6 +113,13 @@ public final class ChatInterceptor {
         String plain = SlayerTracker.strip(raw);
         if (DropPatterns.isPlayerChat(plain)) {
             return "NO MATCH: looks like player chat, which is never intercepted";
+        }
+        DropPatterns.LootShare share = DropPatterns.lootShare(plain);
+        if (share != null) {
+            Drop shared = share.item() == null ? null : Drop.findIn(share.item().toLowerCase(Locale.ROOT), context());
+            return "LOOT SHARE from " + share.player() + (share.item() == null ? " (no item named)" : " -> " + share.item())
+                    + (shared == null ? " - counts as a kill of the boss last seen" : " - MATCH " + shared.displayName())
+                    + "; boss context: " + (context() == null ? "none" : context().displayName());
         }
         DropPatterns.Banner banner = DropPatterns.banner(plain);
         Boss context = context();

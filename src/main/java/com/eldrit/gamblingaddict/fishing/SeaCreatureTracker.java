@@ -2,6 +2,8 @@ package com.eldrit.gamblingaddict.fishing;
 
 import com.eldrit.gamblingaddict.GamblingAddictClient;
 import com.eldrit.gamblingaddict.anim.GambleTrigger;
+import com.eldrit.gamblingaddict.chat.DropPatterns;
+import com.eldrit.gamblingaddict.loot.Drop;
 import com.eldrit.gamblingaddict.config.ModConfig;
 import com.eldrit.gamblingaddict.loot.Boss;
 import com.eldrit.gamblingaddict.slayer.SlayerTracker;
@@ -26,8 +28,8 @@ import java.util.regex.Pattern;
 
 public final class SeaCreatureTracker {
     private static final Pattern NAMETAG = Pattern.compile(
-            "(?:\\[Lv\\d+\\]\\s*)?(?<name>Wiki Tiki|Lord Jawbus|Thunder|Ragnarok)\\s+"
-                    + "(?<hp>[\\d.,]+[kKmMbB]?)(?:/(?<max>[\\d.,]+[kKmMbB]?))?\\s*❤");
+            "(?:\\[Lv\\.?\\s*\\d+\\]\\s*)?(?<name>Wiki Tiki|Lord Jawbus|Thunder|Ragnarok)[^\\dA-Za-z]*"
+                    + "(?<hp>[\\d.,]+[kKmMbB]?)(?:/(?<max>[\\d.,]+[kKmMbB]?))?\\s*[❤♥]");
 
     private static final Map<Boss, Pattern> SPAWN_LINES = Map.of(
             Boss.WIKI_TIKI, Pattern.compile("you have disturbed the Wiki Tiki", Pattern.CASE_INSENSITIVE),
@@ -35,11 +37,12 @@ public final class SeaCreatureTracker {
             Boss.THUNDER, Pattern.compile("rumble as Thunder emerges", Pattern.CASE_INSENSITIVE),
             Boss.RAGNAROK, Pattern.compile("Ragnarok is here", Pattern.CASE_INSENSITIVE));
 
-    private static final int SCAN_INTERVAL = 2;
-    private static final int VANISH_TICKS = 8;
+    private static final int SCAN_INTERVAL = 1;
+    private static final int VANISH_TICKS = 4;
     private static final double KILL_RANGE_SQ = 48.0 * 48.0;
     private static final double RETAG_RANGE_SQ = 8.0 * 8.0;
     private static final long CONTEXT_TICKS = 60 * 20;
+    private static final long LOOT_SHARE_CONTEXT_TICKS = 12 * 20;
     private static final int RESPAWN_SETTLE_TICKS = 60;
 
     private static final class Tracked {
@@ -96,7 +99,11 @@ public final class SeaCreatureTracker {
     }
 
     public static @Nullable Boss recentBoss() {
-        if (recentTick == Long.MIN_VALUE || ticks - recentTick > CONTEXT_TICKS) {
+        return recentBoss(CONTEXT_TICKS);
+    }
+
+    public static @Nullable Boss recentBoss(long withinTicks) {
+        if (recentTick == Long.MIN_VALUE || ticks - recentTick > withinTicks) {
             return null;
         }
         return recentBoss;
@@ -234,8 +241,55 @@ public final class SeaCreatureTracker {
         }
     }
 
-    public static void simulateKill(Boss boss) {
-        Tracked t = new Tracked(boss);
+    public static boolean onLootShare(Component message, DropPatterns.LootShare share, @Nullable Boss context) {
+        String item = share.item();
+        Boss boss = context != null && context.isSeaCreature() ? recentBoss(LOOT_SHARE_CONTEXT_TICKS) : context;
+        if (boss == null && item != null) {
+            Drop guess = Drop.findIn(item.toLowerCase(Locale.ROOT), null);
+            if (guess != null) {
+                boss = guess.boss();
+            }
+        }
+        GamblingAddictClient.LOGGER.info("[GamblingAddict] loot share from {}{} - {}", share.player(),
+                item == null ? "" : " (" + item + ")",
+                boss == null ? "no boss seen recently, cannot gamble" : "counting as a " + boss.displayName() + " kill");
+        if (boss == null) {
+            return false;
+        }
+        remember(boss);
+        GambleTrigger.onBossSlain(boss, 0, SlayerTracker.ticks());
+        if (item == null) {
+            return false;
+        }
+        Drop drop = Drop.findIn(item.toLowerCase(Locale.ROOT), boss);
+        if (drop == null || !GambleTrigger.isEnabled(drop.bossFor(boss))) {
+            return false;
+        }
+        return GambleTrigger.onRareDrop(message, drop, boss, true);
+    }
+
+    public static List<String> nearbyTags(Minecraft client) {
+        List<String> tags = new ArrayList<>();
+        if (client.level == null || client.player == null) {
+            return tags;
+        }
+        for (Entity entity : client.level.entitiesForRendering()) {
+            if (!entity.hasCustomName()) {
+                continue;
+            }
+            Component custom = entity.getCustomName();
+            if (custom == null) {
+                continue;
+            }
+            String plain = SlayerTracker.strip(custom.getString());
+            if (plain.contains("❤") || plain.contains("♥") || plain.contains("Lv")) {
+                tags.add(plain + "  [" + (int) Math.sqrt(entity.distanceToSqr(client.player)) + "m]");
+            }
+        }
+        return tags;
+    }
+
+    public static void simulateKill(Boss boss) {        Tracked t = new Tracked(boss);
         t.sawZero = true;
         onKill(t, "simulated");
     }

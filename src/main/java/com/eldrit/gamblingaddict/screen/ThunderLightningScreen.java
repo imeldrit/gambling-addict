@@ -254,7 +254,7 @@ public class ThunderLightningScreen extends AnimationScreen {
                 int py = (int) y + (int) (Math.sin(ang) * dist);
                 ctx.fill(px, py, px + 2, py + 2, RenderCompat.withAlpha(0x7FD0FF, sparkle));
             }
-            RenderCompat.drawScaledItem(ctx, revealed != null ? revealed : book, cx, y, BOOK_SCALE);
+            RenderCompat.drawGlintItem(ctx, revealed != null ? revealed : book, cx, y, BOOK_SCALE, since, 0x7FD0FF);
             return;
         }
         drawShatter(ctx, cx, y, since);
@@ -309,7 +309,7 @@ public class ThunderLightningScreen extends AnimationScreen {
             RenderCompat.ring(ctx, cx, (int) y, (int) (28 + wp * 90), 2, RenderCompat.withAlpha(0xFF6A6A, (1.0f - wp) * 0.5f));
         }
         float bob = (float) Math.sin(since * 0.18f) * 3.0f;
-        RenderCompat.drawScaledItem(ctx, revealed != null ? revealed : book, cx, y - 6 + bob, BOOK_SCALE * in);
+        RenderCompat.drawGlintItem(ctx, revealed != null ? revealed : book, cx, y - 6 + bob, BOOK_SCALE * in, since, 0xFF6A6A);
     }
 
     private void drawBolt(GuiGraphicsExtractor ctx, int targetX, int targetY, float since, boolean red) {

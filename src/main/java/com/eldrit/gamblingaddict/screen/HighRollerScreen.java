@@ -217,8 +217,12 @@ public class HighRollerScreen extends AnimationScreen {
             if (Math.abs(iconY - cy) > WINDOW_H) {
                 continue;
             }
-            boolean glint = landedSounded && won() && symbol == targetIndex();
-            RenderCompat.drawScaledItem(ctx, glint ? foilIcons[symbol] : icons[symbol], cx, iconY, ICON_SCALE);
+            boolean glint = landedSounded && won() && symbol == targetIndex() && row == 0;
+            if (glint) {
+                RenderCompat.drawGlintItem(ctx, foilIcons[symbol], cx, iconY, ICON_SCALE, ticks, NEON & 0xFFFFFF);
+            } else {
+                RenderCompat.drawScaledItem(ctx, icons[symbol], cx, iconY, ICON_SCALE);
+            }
         }
         for (int i = 0; i < 12; i++) {
             int a = (int) (200 * (1.0f - i / 12.0f));

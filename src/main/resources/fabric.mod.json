@@ -3,11 +3,13 @@
   "id": "gamblingaddict",
   "version": "${version}",
   "name": "Gambling Addict",
-  "description": "Client-side Hypixel SkyBlock companion. Intercepts rare Slayer drop messages and plays a custom GUI reveal animation (anvil durability test / 3-reel slot machine) before the drop is shown in chat.",
+  "description": "Client-side Hypixel SkyBlock companion. Every slayer and sea creature boss kill runs a gamble animation - anvil test, slot machines, pulsing heart, exploding chests, lightning - and a real rare drop flips it to a win.",
   "authors": [
     "eldrit"
   ],
-  "contact": {},
+  "contact": {
+    "sources": "https://github.com/imeldrit/gambling-addict"
+  },
   "license": "MIT",
   "environment": "client",
   "entrypoints": {
@@ -15,6 +17,12 @@
       "com.eldrit.gamblingaddict.GamblingAddictClient"
     ]
   },
+  "mixins": [
+    {
+      "config": "gamblingaddict.mixins.json",
+      "environment": "client"
+    }
+  ],
   "depends": {
     "fabricloader": ">=0.19.0",
     "minecraft": ">=26.1",

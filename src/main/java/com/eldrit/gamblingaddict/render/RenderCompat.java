@@ -61,6 +61,34 @@ public final class RenderCompat {
         ctx.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, u, v, width, height, regionW, regionH, texW, texH, argb);
     }
 
+    private static final Identifier GLINT = Identifier.withDefaultNamespace("textures/misc/enchanted_glint_item.png");
+
+    public static void drawGlintItem(GuiGraphicsExtractor ctx, ItemStack stack, float centerX, float centerY,
+                                     float scale, float t, int haloRgb) {
+        int half = (int) (8.0f * scale);
+        int x0 = (int) centerX - half;
+        int y0 = (int) centerY - half;
+        int size = half * 2;
+
+        float pulse = 0.55f + 0.25f * (float) Math.sin(t * 0.35f);
+        for (int i = 3; i >= 1; i--) {
+            int grow = i * 5;
+            ctx.fill(x0 - grow, y0 - grow, x0 + size + grow, y0 + size + grow,
+                    withAlpha(haloRgb, pulse * (0.10f - i * 0.02f)));
+        }
+
+        drawScaledItem(ctx, stack, centerX, centerY, scale);
+
+        ctx.enableScissor(x0, y0, x0 + size, y0 + size);
+        float u = (t * 1.7f) % 128.0f;
+        float v = (t * 0.9f) % 128.0f;
+        blitRegion(ctx, GLINT, x0 - size, y0 - size, size * 3, size * 3, u, v, 128, 128, 128, 128,
+                withAlpha(0xC8A8FF, 0.45f));
+        blitRegion(ctx, GLINT, x0 - size, y0 - size, size * 3, size * 3, 128.0f - u, v * 0.5f, 128, 128, 128, 128,
+                withAlpha(0xFFFFFF, 0.22f));
+        ctx.disableScissor();
+    }
+
     public static void ring(GuiGraphicsExtractor ctx, int cx, int cy, int r, int thickness, int argb) {
         ctx.fill(cx - r, cy - r, cx + r, cy - r + thickness, argb);
         ctx.fill(cx - r, cy + r - thickness, cx + r, cy + r, argb);

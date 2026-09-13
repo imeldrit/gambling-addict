@@ -135,11 +135,11 @@ public final class ConfigManager {
                 .add(new ActionOption("Jawbus: Radioactive Vial", "The RNGesus reveal.", "Play",
                         () -> preview(Drop.RADIOACTIVE_VIAL)))
                 .add(new ActionOption("Jawbus: Scriptures", "A normal reveal.", "Play",
-                        () -> preview(Drop.BOBBIN_SCRIPTURES)))
+                        () -> preview(Drop.BOBBIN_SCRIPTURES, Boss.LORD_JAWBUS)))
                 .add(new ActionOption("Jawbus: Nothing", "Just fragments.", "Play",
                         () -> previewLoss(Boss.LORD_JAWBUS)))
                 .add(new ActionOption("Thunder: Carmine Dye", "Three strikes, red lightning.", "Play",
-                        () -> preview(Drop.CARMINE_DYE)))
+                        () -> preview(Drop.CARMINE_DYE, Boss.THUNDER)))
                 .add(new ActionOption("Thunder: Flash I", "Two strikes, the book charges.", "Play",
                         () -> preview(Drop.FLASH_BOOK)))
                 .add(new ActionOption("Thunder: Ash", "One strike, the book burns.", "Play",
@@ -189,13 +189,13 @@ public final class ConfigManager {
                         "Volume of the pling each reel plays as it locks, for every slot machine in the mod.",
                         0.0f, 1.0f, 0.05f, "",
                         () -> cfg.slotReelVolume, v -> cfg.slotReelVolume = v))
-                .add(new BooleanOption("Spin Ticks",
-                        "Play a mechanical ticking sound while reels are turning.",
-                        () -> cfg.slotSpinTicks, v -> cfg.slotSpinTicks = v))
-                .add(new FloatOption("Tick Volume",
-                        "Volume of that ticking. Keep it low; it plays several times a second.",
+                .add(new BooleanOption("Reel Clicks",
+                        "Rattle the Minecraft menu click while reels are turning, faster while more reels spin.",
+                        () -> cfg.reelClicks, v -> cfg.reelClicks = v))
+                .add(new FloatOption("Click Volume",
+                        "Volume of the reel clicks, before the master volume.",
                         0.0f, 1.0f, 0.05f, "",
-                        () -> cfg.slotTickVolume, v -> cfg.slotTickVolume = v))
+                        () -> cfg.reelClickVolume, v -> cfg.reelClickVolume = v))
                 .add(new BooleanOption("Revenant (Heartbeat)",
                         "The pulsing heart on every Revenant Horror kill.",
                         () -> cfg.wardenHeartEnabled, v -> cfg.wardenHeartEnabled = v))
@@ -246,6 +246,10 @@ public final class ConfigManager {
                 .add(new BooleanOption("Ragnarock Axe Notification",
                         "Announce the Strength gained when a Ragnarock Axe channel completes.",
                         () -> cfg.ragnarockAxeNotify, v -> cfg.ragnarockAxeNotify = v))
+                .add(new BooleanOption("Ragnarock Cast Timer",
+                        "While the axe channels, count the 3 seconds down as a title. When it completes the title "
+                                + "shows the Strength gained; if you take damage first it shows CANCELLED.",
+                        () -> cfg.ragnarockCastTimer, v -> cfg.ragnarockCastTimer = v))
                 .add(new ChoiceOption("Ragnarock Output",
                         "Where the Ragnarock Axe notification goes: a chat line, a title in the middle of the "
                                 + "screen, or the action bar above the hotbar.",
@@ -273,10 +277,15 @@ public final class ConfigManager {
                 .add(new BooleanOption("Click To Skip",
                         "Let a mouse click end the animation early, the same way Escape already does.",
                         () -> cfg.clickToSkip, v -> cfg.clickToSkip = v))
-                .add(new BooleanOption("Mute Game Sounds",
-                        "Silence every sound except this mod until the result lands. Hypixel plays its own "
-                                + "rare-drop sting, which would otherwise give the outcome away mid-spin.",
-                        () -> cfg.muteOtherSounds, v -> cfg.muteOtherSounds = v))
+                .add(new BooleanOption("Mute Drop Sounds",
+                        "Until the result lands, swallow the jingle Hypixel plays for a rare drop (note block plings, "
+                                + "level-up, challenge toast and friends) so it cannot give the outcome away mid-spin. "
+                                + "Everything else keeps playing. The list lives in the config file as mutedDropSounds.",
+                        () -> cfg.muteDropSounds, v -> cfg.muteDropSounds = v))
+                .add(new BooleanOption("Mute All Game Sounds",
+                        "Silence every game sound, not just the drop jingle, while a gamble is undecided. The mod's "
+                                + "own sounds are never affected.",
+                        () -> cfg.muteAllGameSounds, v -> cfg.muteAllGameSounds = v))
                 .add(new FloatOption("Background Opacity",
                         "How solid the animation backdrop is. 1.00 hides chat and the world completely; lower "
                                 + "it to let them show through.",
@@ -365,6 +374,10 @@ public final class ConfigManager {
                         "Write every incoming chat line to latest.log, raw and stripped, plus how the drop matcher "
                                 + "classified it. Use this to find out why a trigger was missed. Very noisy.",
                         () -> cfg.debugLogging, v -> cfg.debugLogging = v))
+                .add(new BooleanOption("Log Game Sounds",
+                        "While a gamble is undecided, write every sound the server sends to latest.log. Use it to "
+                                + "find the id of a drop jingle that still slips through, then add it to mutedDropSounds.",
+                        () -> cfg.logGameSounds, v -> cfg.logGameSounds = v))
                 .add(new ActionOption("Tracker Status",
                         "Print what the slayer and sea creature trackers currently see.",
                         "Show", () -> {
@@ -413,7 +426,12 @@ public final class ConfigManager {
     }
 
     public static void preview(Drop drop) {
-        open(drop.boss(), GambleSession.win(drop));
+        preview(drop, drop.boss());
+    }
+
+    public static void preview(Drop drop, Boss boss) {
+        Boss target = drop.droppedBy(boss) ? boss : drop.boss();
+        open(target, GambleSession.decided(target, GambleSession.Outcome.WIN, null, drop));
     }
 
     public static void previewLoss(Boss boss) {

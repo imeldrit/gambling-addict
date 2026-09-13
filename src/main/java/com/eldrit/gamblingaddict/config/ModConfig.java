@@ -1,6 +1,7 @@
 package com.eldrit.gamblingaddict.config;
 
 import com.eldrit.gamblingaddict.GamblingAddictClient;
+import com.eldrit.gamblingaddict.util.SoundSuppressor;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.fabricmc.loader.api.FabricLoader;
@@ -9,6 +10,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ModConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -16,7 +19,10 @@ public class ModConfig {
 
     public boolean enabled = true;
     public boolean clickToSkip = true;
-    public boolean muteOtherSounds = true;
+    public boolean muteDropSounds = true;
+    public boolean muteAllGameSounds = false;
+    public boolean logGameSounds = false;
+    public List<String> mutedDropSounds = new ArrayList<>(SoundSuppressor.DEFAULT_DROP_SOUNDS);
     public float backgroundOpacity = 1.0f;
     public boolean gambleOnEveryKill = true;
     public boolean onlyGambleTopTier = false;
@@ -54,8 +60,8 @@ public class ModConfig {
     public boolean primordialEyeEnabled = true;
     public float slotSpeed = 1.0f;
     public float slotReelVolume = 0.85f;
-    public boolean slotSpinTicks = true;
-    public float slotTickVolume = 0.25f;
+    public boolean reelClicks = true;
+    public float reelClickVolume = 0.6f;
     public float jackpotHoldSeconds = 4.0f;
 
     public boolean wardenHeartEnabled = true;
@@ -69,6 +75,7 @@ public class ModConfig {
     public boolean blazeAttunementHud = false;
     public boolean ragnarockAxeNotify = false;
     public int ragnarockAxeOutput = 1;
+    public boolean ragnarockCastTimer = true;
 
     public boolean lootShareDetection = true;
     public boolean profitTracking = true;

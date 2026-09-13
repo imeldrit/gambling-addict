@@ -284,7 +284,7 @@ public class JawbusExplosionScreen extends AnimationScreen {
         RenderCompat.drawScaledItem(ctx, magmafish, chestX(cx, 2), sideY, 1.8f);
 
         if (prize != null) {
-            RenderCompat.drawScaledItem(ctx, prize, cx, y, ITEM_SCALE);
+            RenderCompat.drawGlintItem(ctx, prize, cx, y, ITEM_SCALE, bt, headline() ? 0xFFD27A : 0x8FE08F);
         } else {
             RenderCompat.drawScaledItem(ctx, magmafish, cx, y, 1.8f);
         }

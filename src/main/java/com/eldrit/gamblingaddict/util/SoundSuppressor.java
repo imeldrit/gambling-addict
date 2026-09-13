@@ -2,16 +2,28 @@ package com.eldrit.gamblingaddict.util;
 
 import com.eldrit.gamblingaddict.GamblingAddictClient;
 import com.eldrit.gamblingaddict.config.ModConfig;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.OptionInstance;
+import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.sounds.SoundSource;
 
-import java.util.EnumMap;
-import java.util.Map;
+import java.util.List;
+import java.util.Locale;
 
 public final class SoundSuppressor {
-    private static final Map<SoundSource, Double> SAVED = new EnumMap<>(SoundSource.class);
-    private static boolean active = false;
+
+    public static final List<String> DEFAULT_DROP_SOUNDS = List.of(
+            "minecraft:block.note_block.pling",
+            "minecraft:block.note_block.harp",
+            "minecraft:block.note_block.bell",
+            "minecraft:block.note_block.chime",
+            "minecraft:block.note_block.xylophone",
+            "minecraft:entity.player.levelup",
+            "minecraft:ui.toast.challenge_complete",
+            "minecraft:entity.wither.spawn",
+            "minecraft:entity.ender_dragon.growl",
+            "minecraft:entity.firework_rocket.twinkle",
+            "minecraft:entity.firework_rocket.blast");
+
+    private static volatile boolean active = false;
 
     private SoundSuppressor() {
     }
@@ -21,52 +33,48 @@ public final class SoundSuppressor {
     }
 
     public static void begin() {
-        if (active || !ModConfig.get().muteOtherSounds) {
-            return;
-        }
-        Minecraft client = Minecraft.getInstance();
-        if (client.options == null) {
-            return;
-        }
-        try {
-            SAVED.clear();
-            for (SoundSource source : SoundSource.values()) {
-                if (source == SoundSource.MASTER) {
-                    continue;
-                }
-                OptionInstance<Double> option = client.options.getSoundSourceOptionInstance(source);
-                SAVED.put(source, option.get());
-                option.set(0.0);
-            }
-            active = true;
-
-            if (client.getSoundManager() != null) {
-                client.getSoundManager().stop();
-            }
-        } catch (Throwable t) {
-            GamblingAddictClient.LOGGER.warn("[GamblingAddict] could not mute game sounds", t);
-            end();
-        }
+        active = true;
     }
 
     public static void end() {
-        if (!active) {
-            return;
-        }
         active = false;
-        Minecraft client = Minecraft.getInstance();
-        if (client.options == null) {
-            SAVED.clear();
-            return;
+    }
+
+    public static boolean isOwn(SoundInstance sound) {
+        return sound.getSource() == SoundSource.UI && sound.isRelative();
+    }
+
+    public static boolean shouldCancel(SoundInstance sound) {
+        if (!active || sound == null) {
+            return false;
         }
-        try {
-            for (Map.Entry<SoundSource, Double> entry : SAVED.entrySet()) {
-                client.options.getSoundSourceOptionInstance(entry.getKey()).set(entry.getValue());
+        ModConfig cfg = ModConfig.get();
+        if (isOwn(sound)) {
+            return false;
+        }
+        String id = sound.getIdentifier() == null ? "" : sound.getIdentifier().toString();
+        if (cfg.logGameSounds) {
+            GamblingAddictClient.LOGGER.info("[GamblingAddict] sound during gamble: {} ({})", id, sound.getSource());
+        }
+        if (cfg.muteAllGameSounds) {
+            return true;
+        }
+        if (!cfg.muteDropSounds) {
+            return false;
+        }
+        String lower = id.toLowerCase(Locale.ROOT);
+        for (String muted : cfg.mutedDropSounds) {
+            if (muted == null || muted.isBlank()) {
+                continue;
             }
-        } catch (Throwable t) {
-            GamblingAddictClient.LOGGER.error("[GamblingAddict] could not restore game sounds", t);
-        } finally {
-            SAVED.clear();
+            String m = muted.toLowerCase(Locale.ROOT);
+            if (m.indexOf(':') < 0) {
+                m = "minecraft:" + m;
+            }
+            if (lower.equals(m)) {
+                return true;
+            }
         }
+        return false;
     }
 }

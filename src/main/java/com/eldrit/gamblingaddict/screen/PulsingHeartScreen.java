@@ -140,7 +140,11 @@ public class PulsingHeartScreen extends AnimationScreen {
 
         if (!shattered) {
             drawAura(ctx, hx, hy, pulse, result && isWardenHeart() ? GOLD : HEART_HOT, intro);
-            RenderCompat.drawScaledItem(ctx, result ? heartFoil : heartIcon, hx, hy, HEART_SCALE * intro * (1.0f + pulse * SWELL_AMOUNT));
+            if (result) {
+                RenderCompat.drawGlintItem(ctx, heartFoil, hx, hy, HEART_SCALE * intro * (1.0f + pulse * SWELL_AMOUNT), ticks, GOLD & 0xFFFFFF);
+            } else {
+                RenderCompat.drawScaledItem(ctx, heartIcon, hx, hy, HEART_SCALE * intro * (1.0f + pulse * SWELL_AMOUNT));
+            }
             if (beat >= 1 && !result) {
                 drawBloodPulse(ctx, hx, hy, local, beat);
             }
@@ -151,7 +155,7 @@ public class PulsingHeartScreen extends AnimationScreen {
                 float in = easeOutCubic(clamp01((rt - 8.0f) / 12.0f));
                 float hover = (float) Math.sin(rt * 0.12f) * 3.0f;
                 drawFoilGlow(ctx, hx, (int) (hy + hover), rt, in);
-                RenderCompat.drawScaledItem(ctx, revealIcon, hx, hy + hover, 2.6f * in);
+                RenderCompat.drawGlintItem(ctx, revealIcon, hx, hy + hover, 2.6f * in, ticks, 0xC070FF);
             }
         }
 

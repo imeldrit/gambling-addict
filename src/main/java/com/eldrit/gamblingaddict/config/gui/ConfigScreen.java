@@ -29,7 +29,9 @@ public class ConfigScreen extends Screen {
 
     private static final int SIDEBAR_W = 132;
     private static final int TITLE_H = 26;
-    private static final int HEADER_H = 30;
+    private static final int HEADER_H = 20;
+    private static final int SEARCH_W = 118;
+    private static final int SEARCH_H = 14;
     private static final int PAD = 8;
 
     private List<ConfigCategory> categories = new ArrayList<>();
@@ -113,10 +115,11 @@ public class ConfigScreen extends Screen {
         RenderCompat.outline(ctx, panelX, panelY, panelW, panelH, PANEL_BORDER);
 
         ctx.fill(panelX + 1, panelY + 1, panelX + panelW - 1, panelY + TITLE_H, TITLE_BG);
-        RenderCompat.centeredText(ctx, this.font,
+        ctx.text(this.font,
                 Component.literal("Gambling Addict").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)
                         .append(Component.literal("  by eldrit").withStyle(ChatFormatting.DARK_GRAY)),
-                panelX + panelW / 2, panelY + 9, 0xFFFFD24A);
+                panelX + PAD + 2, panelY + 9, 0xFFFFD24A, false);
+        drawSearchBox(ctx);
 
         drawSidebar(ctx, mouseX, mouseY);
         drawContentHeader(ctx, mouseX, mouseY);
@@ -157,13 +160,23 @@ public class ConfigScreen extends Screen {
         String blurb = search.isEmpty()
                 ? (categories.isEmpty() ? "" : categories.get(selected).blurb)
                 : visibleEntries().size() + " setting(s) matching \"" + search + "\"";
-        ctx.text(this.font, Component.literal(blurb), contentX + 2, y + 3, 0xFFB0B0C0, false);
+        ctx.text(this.font, Component.literal(blurb), contentX + 2, y - 2, 0xFFB0B0C0, false);
+    }
 
-        int boxW = 116;
-        int boxX = contentX + contentW - boxW;
-        int boxY = y + 14;
-        ctx.fill(boxX, boxY, boxX + boxW, boxY + 14, SEARCH_BG);
-        RenderCompat.outline(ctx, boxX, boxY, boxW, 14, searchFocused ? CAT_SELECTED : 0xFF3A3A4C);
+    private int searchBoxX() {
+        return panelX + panelW - PAD - SEARCH_W;
+    }
+
+    private int searchBoxY() {
+        return panelY + (TITLE_H - SEARCH_H) / 2 + 1;
+    }
+
+    private void drawSearchBox(GuiGraphicsExtractor ctx) {
+        int boxW = SEARCH_W;
+        int boxX = searchBoxX();
+        int boxY = searchBoxY();
+        ctx.fill(boxX, boxY, boxX + boxW, boxY + SEARCH_H, SEARCH_BG);
+        RenderCompat.outline(ctx, boxX, boxY, boxW, SEARCH_H, searchFocused ? CAT_SELECTED : 0xFF3A3A4C);
 
         int gx = boxX + 4;
         int gy = boxY + 4;
@@ -227,10 +240,9 @@ public class ConfigScreen extends Screen {
             ry += 16;
         }
 
-        int boxW = 116;
-        int boxX = contentX + contentW - boxW;
-        int boxY = panelY + TITLE_H + 8 + 14;
-        searchFocused = mouseX >= boxX && mouseX < boxX + boxW && mouseY >= boxY && mouseY < boxY + 14;
+        int boxX = searchBoxX();
+        int boxY = searchBoxY();
+        searchFocused = mouseX >= boxX && mouseX < boxX + SEARCH_W && mouseY >= boxY && mouseY < boxY + SEARCH_H;
         if (searchFocused) {
             return true;
         }

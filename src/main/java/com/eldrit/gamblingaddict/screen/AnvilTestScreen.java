@@ -165,7 +165,11 @@ public class AnvilTestScreen extends AnimationScreen {
             float sinceBreak = body - ((STRIKES - 1) * CYCLE_TICKS + FALL_TICKS);
             drawShatteredCore(ctx, (int) coreCenterX, (int) coreCenterY, Math.max(0.0f, sinceBreak));
         } else {
-            RenderCompat.drawScaledItem(ctx, victory ? coreFoil : core, coreCenterX, coreCenterY, CORE_SCALE);
+            if (victory) {
+                RenderCompat.drawGlintItem(ctx, coreFoil, coreCenterX, coreCenterY, CORE_SCALE, t, GOLD & 0xFFFFFF);
+            } else {
+                RenderCompat.drawScaledItem(ctx, core, coreCenterX, coreCenterY, CORE_SCALE);
+            }
 
             int crackStage = crackStage(strike, local, victory);
             if (crackStage > 0) {

@@ -21,6 +21,7 @@ base {
 
 repositories {
     mavenCentral()
+    maven { url = 'https://maven.fabricmc.net/' }
 }
 
 loom {
@@ -60,6 +61,8 @@ dependencies {
     // Neither is bundled into the output jar; the loader provides them at runtime.
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    compileOnly "net.fabricmc:sponge-mixin:${project.mixin_version}"
 }
 
 processResources {

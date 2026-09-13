@@ -37,6 +37,7 @@ public final class TrackerHud {
                 RagnarockAxeTracker.onChat(plain);
             }
         });
+        RagnarockAxeTracker.register();
         HudElementRegistry.addLast(ID, TrackerHud::render);
     }
 

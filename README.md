@@ -85,10 +85,10 @@ Settings live in `config/gamblingaddict.json`.
 
 The HUD helpers draw a small panel at the position set in **Misc → HUD Position**:
 
-- **Mob Cap Counter** — sea creatures currently loaded around you against the limit
-- **Ability Cooldown** — a countdown whenever Hypixel reports an ability on
+- **Mob Cap Counter** - sea creatures currently loaded around you against the limit
+- **Ability Cooldown** - a countdown whenever Hypixel reports an ability on
   cooldown, plus the Ragnarock Axe buff timer
-- **Blaze Attunement** — the Inferno Demonlord's current ASHEN / SPIRIT / AURIC /
+- **Blaze Attunement** - the Inferno Demonlord's current ASHEN / SPIRIT / AURIC /
   CRYSTAL attunement, read from the boss nametags
 
 The Ragnarock Axe line is matched loosely (`gain … +X Strength`), since Hypixel
@@ -129,4 +129,4 @@ substantially from the 1.21 line.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT - see [LICENSE](LICENSE).

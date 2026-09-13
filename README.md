@@ -3,7 +3,7 @@
 A client-side Fabric mod for Hypixel SkyBlock.
 
 Every boss kill is a pull of the lever. The animation plays on the **kill**,
-not on the drop — so it can lose, and it almost always does. If a real rare-drop
+not on the drop - so it can lose, and it almost always does. If a real rare-drop
 line arrives while the machine is still running, the result flips to a win and
 the reveal shows the item that actually dropped.
 
